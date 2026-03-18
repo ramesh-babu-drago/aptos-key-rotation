@@ -33,9 +33,6 @@ function formatAccountInfo(account: Ed25519Account): string {
   const oldAccountPrivateKey = Account.fromPrivateKey({ privateKey: new Ed25519PrivateKey(process.env.OLD_ACCOUNT_PRIVATE_KEY!) });
   const newAccountPrivateKey = Account.fromPrivateKey({ privateKey: new Ed25519PrivateKey(process.env.NEW_ACCOUNT_PRIVATE_KEY!) });
 
-  await aptos.fundAccount({ accountAddress: oldAccountPrivateKey.accountAddress, amount: 1000000000 });
-  await aptos.fundAccount({ accountAddress: newAccountPrivateKey.accountAddress, amount: 1000000000 });
-
   console.log(
     `\n${"Account".padEnd(WIDTH)} ${"Address".padEnd(WIDTH)} ${"Auth Key".padEnd(WIDTH)} ${"Private Key".padEnd(
       WIDTH,
@@ -47,7 +44,8 @@ function formatAccountInfo(account: Ed25519Account): string {
   console.log("\n...rotating...".padStart(WIDTH));
 
   // Rotate the key!
-  await aptos.rotateAuthKey({ fromAccount: oldAccountPrivateKey, toNewPrivateKey: newAccountPrivateKey.privateKey });
+  const transaction = await aptos.rotateAuthKey({ fromAccount: oldAccountPrivateKey, toNewPrivateKey: newAccountPrivateKey.privateKey });
+  await aptos.signAndSubmitTransaction({ signer: oldAccountPrivateKey, transaction });
 
   const oldAccountNew = Account.fromPrivateKey({ privateKey: newAccountPrivateKey.privateKey, address: oldAccountPrivateKey.accountAddress });
 
